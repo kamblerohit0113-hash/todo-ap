@@ -65,3 +65,11 @@ li.completed {
   text-decoration: line-through;
   color: gray;
 }
+.todo-container {
+  background: white;
+  padding: 30px;   /* increased from 20px */
+  border-radius: 16px;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+  width: 450px;    /* increased from 350px */
+  text-align: center;
+}
