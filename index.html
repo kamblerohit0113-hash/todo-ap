@@ -14,6 +14,7 @@
       align-items: center;
       height: 100vh;
       margin: 0;
+      transition: background 0.3s, color 0.3s;
     }
 
     .todo-container {
@@ -21,8 +22,9 @@
       padding: 20px;
       border-radius: 12px;
       box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-      width: 350px;
+      width: 370px;
       text-align: center;
+      transition: background 0.3s, color 0.3s;
     }
 
     .logo {
@@ -32,13 +34,19 @@
     }
 
     h2 {
-      margin-bottom: 15px;
+      margin-bottom: 10px;
       color: #333;
+    }
+
+    #counter {
+      font-size: 14px;
+      color: #555;
+      margin-bottom: 15px;
     }
 
     input {
       padding: 10px;
-      width: 65%;
+      width: 60%;
       border: 1px solid #ccc;
       border-radius: 6px;
       margin-right: 5px;
@@ -74,6 +82,7 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      transition: background 0.3s, color 0.3s;
     }
 
     li.completed span {
@@ -94,13 +103,9 @@
       transform: scale(1.2);
     }
 
-    .done-btn {
-      color: green;
-    }
-
-    .delete-btn {
-      color: red;
-    }
+    .done-btn { color: green; }
+    .edit-btn { color: orange; }
+    .delete-btn { color: red; }
 
     .clear-all {
       margin-top: 10px;
@@ -110,6 +115,46 @@
     .clear-all:hover {
       background: darkred;
     }
+
+    /* 🌙 Dark Mode Styles */
+    body.dark {
+      background: #121212 !important;
+      color: #eee;
+    }
+
+    body.dark .todo-container {
+      background: #1e1e1e;
+      color: #eee;
+    }
+
+    body.dark li {
+      background: #2c2c2c;
+      color: #ccc;
+    }
+
+    body.dark input {
+      background: #333;
+      color: #eee;
+      border: 1px solid #555;
+    }
+
+    body.dark button {
+      background: #444;
+      color: #eee;
+    }
+
+    body.dark button:hover {
+      background: #666;
+    }
+
+    .toggle-dark {
+      margin-top: 12px;
+      background: #6c757d;
+    }
+
+    .toggle-dark:hover {
+      background: #5a6268;
+    }
   </style>
 </head>
 <body>
@@ -118,17 +163,27 @@
     <img src="https://cdn.dribbble.com/userupload/11730792/file/original-bef03cbe79800a72e0d92d59a517deb2.png" alt="App Logo" class="logo">
 
     <h2>📝 My To-Do App</h2>
+    <p id="counter">0 tasks (0 completed)</p>
     <input type="text" id="taskInput" placeholder="Enter a task">
     <button onclick="addTask()">Add</button>
     <ul id="taskList"></ul>
     <button class="clear-all" onclick="clearAll()">🗑 Clear All</button>
+    <br>
+    <button class="toggle-dark" onclick="toggleDarkMode()">🌙 Dark Mode</button>
   </div>
 
   <script>
-    // Load saved tasks from localStorage
+    // Load tasks + dark mode preference
     window.onload = function() {
       let savedTasks = JSON.parse(localStorage.getItem("tasks")) || [];
       savedTasks.forEach(task => addTaskToDOM(task.text, task.completed));
+      updateCounter();
+
+      // Apply saved dark mode
+      if (localStorage.getItem("darkMode") === "true") {
+        document.body.classList.add("dark");
+        document.querySelector(".toggle-dark").innerText = "☀ Light Mode";
+      }
     };
 
     function addTask() {
@@ -139,6 +194,7 @@
       addTaskToDOM(taskText, false);
       saveTasks();
       input.value = "";
+      updateCounter();
     }
 
     function addTaskToDOM(taskText, completed) {
@@ -149,6 +205,7 @@
         <span>${taskText}</span>
         <div>
           <button class="icon-btn done-btn" onclick="toggleComplete(this)">✔</button>
+          <button class="icon-btn edit-btn" onclick="editTask(this)">✏</button>
           <button class="icon-btn delete-btn" onclick="deleteTask(this)">🗑</button>
         </div>
       `;
@@ -159,16 +216,29 @@
       let li = button.parentElement.parentElement;
       li.classList.toggle("completed");
       saveTasks();
+      updateCounter();
+    }
+
+    function editTask(button) {
+      let li = button.parentElement.parentElement;
+      let span = li.querySelector("span");
+      let newText = prompt("Edit task:", span.innerText);
+      if (newText !== null && newText.trim() !== "") {
+        span.innerText = newText.trim();
+        saveTasks();
+      }
     }
 
     function deleteTask(button) {
       button.parentElement.parentElement.remove();
       saveTasks();
+      updateCounter();
     }
 
     function clearAll() {
       document.getElementById("taskList").innerHTML = "";
       localStorage.removeItem("tasks");
+      updateCounter();
     }
 
     function saveTasks() {
@@ -180,6 +250,20 @@
         });
       });
       localStorage.setItem("tasks", JSON.stringify(tasks));
+    }
+
+    function updateCounter() {
+      let allTasks = document.querySelectorAll("#taskList li").length;
+      let completedTasks = document.querySelectorAll("#taskList li.completed").length;
+      document.getElementById("counter").innerText = ${allTasks} tasks (${completedTasks} completed);
+    }
+
+    // 🌙 Dark Mode Toggle
+    function toggleDarkMode() {
+      document.body.classList.toggle("dark");
+      let isDark = document.body.classList.contains("dark");
+      localStorage.setItem("darkMode", isDark);
+      document.querySelector(".toggle-dark").innerText = isDark ? "☀ Light Mode" : "🌙 Dark Mode";
     }
   </script>
 </body>
