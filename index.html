@@ -15,15 +15,16 @@
       align-items: center;
       height: 100vh;
       margin: 0;
+      transition: 0.3s;
     }
 
     .todo-container {
       background: white;
       padding: 20px;
       border-radius: 12px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
       width: 370px;
       text-align: center;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
     }
 
     input {
@@ -34,9 +35,9 @@
 
     button {
       padding: 10px;
+      border: none;
       background: #007bff;
       color: white;
-      border: none;
       border-radius: 6px;
       cursor: pointer;
     }
@@ -44,6 +45,7 @@
     ul {
       list-style: none;
       padding: 0;
+      margin-top: 10px;
     }
 
     li {
@@ -53,11 +55,52 @@
       border-radius: 6px;
       display: flex;
       justify-content: space-between;
+      align-items: center;
     }
 
     li.completed span {
       text-decoration: line-through;
       color: gray;
+    }
+
+    .icon-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      margin-left: 5px;
+    }
+
+    .done-btn { color: green; }
+    .edit-btn { color: orange; }
+    .delete-btn { color: red; }
+
+    .clear-all {
+      margin-top: 10px;
+      background: red;
+    }
+
+    .toggle-dark {
+      margin-top: 10px;
+      background: gray;
+    }
+
+    /* Dark mode */
+    body.dark {
+      background: #121212;
+      color: white;
+    }
+
+    body.dark .todo-container {
+      background: #1e1e1e;
+    }
+
+    body.dark li {
+      background: #333;
+    }
+
+    body.dark input {
+      background: #444;
+      color: white;
     }
   </style>
 </head>
@@ -69,21 +112,26 @@
   <p id="counter">0 tasks (0 completed)</p>
 
   <input type="text" id="taskInput" placeholder="Enter a task">
-  <button id="addBtn">Add</button>
+  <button onclick="addTask()">Add</button>
 
   <ul id="taskList"></ul>
+
+  <button class="clear-all" onclick="clearAll()">🗑 Clear All</button>
+  <br>
+  <button class="toggle-dark" onclick="toggleDarkMode()">🌙 Dark Mode</button>
 </div>
 
 <script>
-  // Add button click
-  document.getElementById("addBtn").addEventListener("click", addTask);
+  // Load saved tasks
+  window.onload = function () {
+    let savedTasks = JSON.parse(localStorage.getItem("tasks")) || [];
+    savedTasks.forEach(task => addTaskToDOM(task.text, task.completed));
+    updateCounter();
 
-  // Enter key support
-  document.getElementById("taskInput").addEventListener("keypress", function(e) {
-    if (e.key === "Enter") {
-      addTask();
+    if (localStorage.getItem("darkMode") === "true") {
+      document.body.classList.add("dark");
     }
-  });
+  };
 
   function addTask() {
     let input = document.getElementById("taskInput");
@@ -94,31 +142,67 @@
       return;
     }
 
+    addTaskToDOM(taskText, false);
+    saveTasks();
+    input.value = "";
+    updateCounter();
+  }
+
+  function addTaskToDOM(text, completed) {
     let li = document.createElement("li");
+    if (completed) li.classList.add("completed");
 
     li.innerHTML = `
-      <span>${taskText}</span>
+      <span>${text}</span>
       <div>
-        <button onclick="toggleComplete(this)">✔</button>
-        <button onclick="deleteTask(this)">🗑</button>
+        <button class="icon-btn done-btn" onclick="toggleComplete(this)">✔</button>
+        <button class="icon-btn edit-btn" onclick="editTask(this)">✏</button>
+        <button class="icon-btn delete-btn" onclick="deleteTask(this)">🗑</button>
       </div>
     `;
 
     document.getElementById("taskList").appendChild(li);
-
-    input.value = "";
-    updateCounter();
   }
 
   function toggleComplete(btn) {
     let li = btn.parentElement.parentElement;
     li.classList.toggle("completed");
+    saveTasks();
     updateCounter();
+  }
+
+  function editTask(btn) {
+    let li = btn.parentElement.parentElement;
+    let span = li.querySelector("span");
+
+    let newText = prompt("Edit task:", span.innerText);
+    if (newText !== null && newText.trim() !== "") {
+      span.innerText = newText;
+      saveTasks();
+    }
   }
 
   function deleteTask(btn) {
     btn.parentElement.parentElement.remove();
+    saveTasks();
     updateCounter();
+  }
+
+  function clearAll() {
+    document.getElementById("taskList").innerHTML = "";
+    localStorage.removeItem("tasks");
+    updateCounter();
+  }
+
+  function saveTasks() {
+    let tasks = [];
+    document.querySelectorAll("#taskList li").forEach(li => {
+      tasks.push({
+        text: li.querySelector("span").innerText,
+        completed: li.classList.contains("completed")
+      });
+    });
+    localStorage.setItem("tasks", JSON.stringify(tasks));
   }
 
   function updateCounter() {
@@ -127,6 +211,12 @@
 
     document.getElementById("counter").innerText =
       `${allTasks} tasks (${completedTasks} completed)`;
+  }
+
+  function toggleDarkMode() {
+    document.body.classList.toggle("dark");
+    let isDark = document.body.classList.contains("dark");
+    localStorage.setItem("darkMode", isDark);
   }
 </script>
 
