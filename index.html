@@ -27,6 +27,12 @@
       box-shadow: 0 4px 10px rgba(0,0,0,0.3);
     }
 
+    .logo {
+      width: 70px;
+      height: 70px;
+      margin-bottom: 10px;
+    }
+
     input {
       padding: 10px;
       width: 60%;
@@ -108,6 +114,10 @@
 <body>
 
 <div class="todo-container">
+
+  <!-- ✅ LOGO -->
+  <img src="https://cdn-icons-png.flaticon.com/512/1828/1828817.png" class="logo">
+
   <h2>📝 My To-Do App</h2>
   <p id="counter">0 tasks (0 completed)</p>
 
@@ -119,10 +129,11 @@
   <button class="clear-all" onclick="clearAll()">🗑 Clear All</button>
   <br>
   <button class="toggle-dark" onclick="toggleDarkMode()">🌙 Dark Mode</button>
+
 </div>
 
 <script>
-  // Load saved tasks
+  // Load tasks
   window.onload = function () {
     let savedTasks = JSON.parse(localStorage.getItem("tasks")) || [];
     savedTasks.forEach(task => addTaskToDOM(task.text, task.completed));
