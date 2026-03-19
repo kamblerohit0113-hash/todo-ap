@@ -10,7 +10,6 @@ function addTask() {
   li.onclick = function() {
     li.classList.toggle("completed");
   };
-
-  document.getElementById("taskList").appendChild(li);
+document.getElementById("addBtn").addEventListener("click", addTask);
   input.value = "";
 }
