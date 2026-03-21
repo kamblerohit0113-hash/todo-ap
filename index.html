@@ -1,62 +1,70 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>My To-Do App</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>React To-Do App</title>
+
+  <!-- React CDN -->
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
 
   <style>
     body {
+      margin: 0;
       font-family: Arial, sans-serif;
-      background: url('https://i.pinimg.com/originals/6f/6c/15/6f6c1538b050072b002dbc06bedaaf90.jpg') no-repeat center center fixed;
+      background: url("https://images.unsplash.com/photo-1507525428034-b723cf961d3e") no-repeat center center fixed;
       background-size: cover;
       display: flex;
       justify-content: center;
       align-items: center;
       height: 100vh;
-      margin: 0;
-      transition: 0.3s;
     }
 
     .todo-container {
-      background: white;
-      padding: 20px;
-      border-radius: 12px;
-      width: 370px;
+      background: rgba(255, 255, 255, 0.9);
+      padding: 25px;
+      border-radius: 15px;
+      width: 380px;
       text-align: center;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      box-shadow: 0 6px 15px rgba(0,0,0,0.3);
     }
 
-    .logo {
-      width: 70px;
-      height: 70px;
-      margin-bottom: 10px;
+    .input-box {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
     }
 
     input {
+      flex: 1;
       padding: 10px;
-      width: 60%;
       border-radius: 6px;
+      border: 1px solid #ccc;
     }
 
     button {
       padding: 10px;
       border: none;
-      background: #007bff;
-      color: white;
       border-radius: 6px;
+      background-color: #4facfe;
+      color: white;
       cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #007bff;
     }
 
     ul {
       list-style: none;
       padding: 0;
-      margin-top: 10px;
     }
 
     li {
-      background: #f4f4f4;
-      margin: 8px 0;
+      background: #f0f0f0;
+      margin: 6px 0;
       padding: 10px;
       border-radius: 6px;
       display: flex;
@@ -64,171 +72,85 @@
       align-items: center;
     }
 
-    li.completed span {
+    li.completed {
       text-decoration: line-through;
       color: gray;
-    }
-
-    .icon-btn {
-      background: none;
-      border: none;
-      cursor: pointer;
-      margin-left: 5px;
-    }
-
-    .done-btn { color: green; }
-    .edit-btn { color: orange; }
-    .delete-btn { color: red; }
-
-    .clear-all {
-      margin-top: 10px;
-      background: red;
-    }
-
-    .toggle-dark {
-      margin-top: 10px;
-      background: gray;
-    }
-
-    /* Dark mode */
-    body.dark {
-      background: #121212;
-      color: white;
-    }
-
-    body.dark .todo-container {
-      background: #1e1e1e;
-    }
-
-    body.dark li {
-      background: #333;
-    }
-
-    body.dark input {
-      background: #444;
-      color: white;
     }
   </style>
 </head>
 
 <body>
 
-<div class="todo-container">
+<div id="root"></div>
 
-  <!-- ✅ LOGO -->
-  <img src="https://images.seeklogo.com/logo-png/43/2/to-do-today-logo-png_seeklogo-434064.png" class="logo">
+<script type="text/babel">
 
-  <h2>📝 My To-Do App</h2>
-  <p id="counter">0 tasks (0 completed)</p>
+function App() {
+  const [tasks, setTasks] = React.useState([]);
+  const [input, setInput] = React.useState("");
 
-  <input type="text" id="taskInput" placeholder="Enter a task">
-  <button onclick="addTask()">Add</button>
-
-  <ul id="taskList"></ul>
-
-  <button class="clear-all" onclick="clearAll()">🗑 Clear All</button>
-  <br>
-  <button class="toggle-dark" onclick="toggleDarkMode()">🌙 Dark Mode</button>
-
-</div>
-
-<script>
   // Load tasks
-  window.onload = function () {
-    let savedTasks = JSON.parse(localStorage.getItem("tasks")) || [];
-    savedTasks.forEach(task => addTaskToDOM(task.text, task.completed));
-    updateCounter();
+  React.useEffect(() => {
+    let saved = JSON.parse(localStorage.getItem("tasks")) || [];
+    setTasks(saved);
+  }, []);
 
-    if (localStorage.getItem("darkMode") === "true") {
-      document.body.classList.add("dark");
-    }
-  };
+  // Save tasks
+  React.useEffect(() => {
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+  }, [tasks]);
 
-  function addTask() {
-    let input = document.getElementById("taskInput");
-    let taskText = input.value.trim();
-
-    if (taskText === "") {
-      alert("Please enter a task");
+  const addTask = () => {
+    if (input.trim() === "") {
+      alert("Enter a task");
       return;
     }
 
-    addTaskToDOM(taskText, false);
-    saveTasks();
-    input.value = "";
-    updateCounter();
-  }
+    setTasks([...tasks, { text: input, completed: false }]);
+    setInput("");
+  };
 
-  function addTaskToDOM(text, completed) {
-    let li = document.createElement("li");
-    if (completed) li.classList.add("completed");
+  const toggleTask = (index) => {
+    let newTasks = [...tasks];
+    newTasks[index].completed = !newTasks[index].completed;
+    setTasks(newTasks);
+  };
 
-    li.innerHTML = `
-      <span>${text}</span>
-      <div>
-        <button class="icon-btn done-btn" onclick="toggleComplete(this)">✔</button>
-        <button class="icon-btn edit-btn" onclick="editTask(this)">✏</button>
-        <button class="icon-btn delete-btn" onclick="deleteTask(this)">🗑</button>
+  const deleteTask = (index) => {
+    let newTasks = tasks.filter((_, i) => i !== index);
+    setTasks(newTasks);
+  };
+
+  return (
+    <div className="todo-container">
+      <h2>📝 React To-Do App</h2>
+
+      <div className="input-box">
+        <input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          placeholder="Enter task"
+        />
+        <button onClick={addTask}>Add</button>
       </div>
-    `;
 
-    document.getElementById("taskList").appendChild(li);
-  }
+      <ul>
+        {tasks.map((task, index) => (
+          <li key={index} className={task.completed ? "completed" : ""}>
+            <span onClick={() => toggleTask(index)}>
+              {task.text}
+            </span>
+            <button onClick={() => deleteTask(index)}>🗑</button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
 
-  function toggleComplete(btn) {
-    let li = btn.parentElement.parentElement;
-    li.classList.toggle("completed");
-    saveTasks();
-    updateCounter();
-  }
+// Render
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
 
-  function editTask(btn) {
-    let li = btn.parentElement.parentElement;
-    let span = li.querySelector("span");
-
-    let newText = prompt("Edit task:", span.innerText);
-    if (newText !== null && newText.trim() !== "") {
-      span.innerText = newText;
-      saveTasks();
-    }
-  }
-
-  function deleteTask(btn) {
-    btn.parentElement.parentElement.remove();
-    saveTasks();
-    updateCounter();
-  }
-
-  function clearAll() {
-    document.getElementById("taskList").innerHTML = "";
-    localStorage.removeItem("tasks");
-    updateCounter();
-  }
-
-  function saveTasks() {
-    let tasks = [];
-    document.querySelectorAll("#taskList li").forEach(li => {
-      tasks.push({
-        text: li.querySelector("span").innerText,
-        completed: li.classList.contains("completed")
-      });
-    });
-    localStorage.setItem("tasks", JSON.stringify(tasks));
-  }
-
-  function updateCounter() {
-    let allTasks = document.querySelectorAll("#taskList li").length;
-    let completedTasks = document.querySelectorAll("#taskList li.completed").length;
-
-    document.getElementById("counter").innerText =
-      `${allTasks} tasks (${completedTasks} completed)`;
-  }
-
-  function toggleDarkMode() {
-    document.body.classList.toggle("dark");
-    let isDark = document.body.classList.contains("dark");
-    localStorage.setItem("darkMode", isDark);
-  }
 </script>
 
 </body>
