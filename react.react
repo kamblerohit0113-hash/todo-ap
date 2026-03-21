@@ -1,0 +1,100 @@
+import React, { useState, useEffect } from "react";
+
+export default function TodoApp() {
+  const [tasks, setTasks] = useState([]);
+  const [input, setInput] = useState("");
+  const [darkMode, setDarkMode] = useState(false);
+
+  useEffect(() => {
+    const savedTasks = JSON.parse(localStorage.getItem("tasks")) || [];
+    const savedDark = localStorage.getItem("darkMode") === "true";
+    setTasks(savedTasks);
+    setDarkMode(savedDark);
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("tasks", JSON.stringify(tasks));
+  }, [tasks]);
+
+  useEffect(() => {
+    localStorage.setItem("darkMode", darkMode);
+  }, [darkMode]);
+
+  const addTask = () => {
+    if (!input.trim()) return alert("Enter a task");
+
+    if (tasks.some(t => t.text === input)) {
+      return alert("Task already exists");
+    }
+
+    setTasks([...tasks, { text: input, completed: false }]);
+    setInput("");
+  };
+
+  const toggleComplete = (index) => {
+    const newTasks = [...tasks];
+    newTasks[index].completed = !newTasks[index].completed;
+    setTasks(newTasks);
+  };
+
+  const deleteTask = (index) => {
+    if (window.confirm("Delete this task?")) {
+      setTasks(tasks.filter((_, i) => i !== index));
+    }
+  };
+
+  const editTask = (index) => {
+    const newText = prompt("Edit task", tasks[index].text);
+    if (newText && newText.trim()) {
+      const newTasks = [...tasks];
+      newTasks[index].text = newText;
+      setTasks(newTasks);
+    }
+  };
+
+  const clearAll = () => {
+    setTasks([]);
+  };
+
+  const completedCount = tasks.filter(t => t.completed).length;
+
+  return (
+    <div className={darkMode ? "bg-black text-white min-h-screen flex justify-center items-center" : "bg-gray-200 min-h-screen flex justify-center items-center"}>
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg w-96 text-center">
+        <h2 className="text-xl font-bold mb-2">📝 My To-Do App</h2>
+        <p>{tasks.length} tasks ({completedCount} completed)</p>
+
+        <div className="flex gap-2 mt-3">
+          <input
+            className="flex-1 p-2 border rounded"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyPress={(e) => e.key === "Enter" && addTask()}
+            placeholder="Enter task"
+          />
+          <button className="bg-blue-500 text-white px-3 rounded" onClick={addTask}>Add</button>
+        </div>
+
+        <ul className="mt-4">
+          {tasks.length === 0 && <p>No tasks yet 😃</p>}
+          {tasks.map((task, index) => (
+            <li key={index} className={`flex justify-between items-center p-2 my-2 rounded ${task.completed ? "line-through text-gray-400" : "bg-gray-100"}`}>
+              <span>{task.text}</span>
+              <div className="flex gap-2">
+                <button onClick={() => toggleComplete(index)}>✔</button>
+                <button onClick={() => editTask(index)}>✏</button>
+                <button onClick={() => deleteTask(index)}>🗑</button>
+              </div>
+            </li>
+          ))}
+        </ul>
+
+        <button className="bg-red-500 text-white mt-3 px-3 py-1 rounded" onClick={clearAll}>Clear All</button>
+        <br />
+        <button className="bg-gray-500 text-white mt-2 px-3 py-1 rounded" onClick={() => setDarkMode(!darkMode)}>
+          Toggle Dark Mode
+        </button>
+      </div>
+    </div>
+  );
+}
